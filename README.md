@@ -1,153 +1,83 @@
-# Implementation-of-Logistic-Regression-Using-Gradient-Descent
+# Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student
 
 ## AIM:
-To write a program to implement the the Logistic Regression Using Gradient Descent.
+To write a program to implement the the Logistic Regression Model to Predict the Placement Status of Student.
 
 ## Equipments Required:
 1. Hardware – PCs
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. Import the data file and import numpy, matplotlib and scipy.
-2. Visulaize the data and define the sigmoid function, cost function and gradient descent.
-3. Plot the decision boundary .
-4. Calculate the y-prediction.
+1. Data Preprocessing: Cleanse data, handle missing values, encode categorical variables.
+2. Model Training: Fit logistic regression model on preprocessed data.
+3. Model Evaluation: Assess model performance using metrics like accuracy, precision, recall.
+4. Prediction: Predict placement status for new student data using trained model.
 
 ## Program:
-```
+```python3
 /*
-Program to implement the the Logistic Regression Using Gradient Descent.
-Developed by: Lokesh khanna.R
-RegisterNumber: 212222040088
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy import optimize    #to remove unwanted data and memory storage
+Program to implement the the Logistic Regression Model to Predict the Placement Status of Student.
+Developed by: lokesh khanna R
+RegisterNumber: 21222204008
 
-data=np.loadtxt("/content/ex2data1 (1).txt",delimiter=',')
-X=data[:,[0,1]]
-y=data[:,2]
+import pandas as pd
+data=pd.read_csv("C:/Users/admin/OneDrive/Documents/INTRO TO ML/Placement_Data.csv")
+data.head()
 
-X[:5]
+data1=data.copy()
+data1=data1.drop(["sl_no","salary"],axis=1)
+data.head()
 
-y[:5]
+data1.isnull()
 
-Visualizing the data
-plt.figure()
-plt.scatter(X[y==1][:,0],X[y==1][:,1],label="Admitted")
-plt.scatter(X[y==0][:,0],X[y==0][:,1],label="Not admitted")
-plt.xlabel("Exam 1 score")
-plt.ylabel("Exam 2 score")
-plt.legend()
-plt.show()
+data1.duplicated().sum()
 
-Sigmoid fuction
-def sigmoid(z):
-  return 1/(1+np.exp(-z))
-  
-plt.plot()
-X_plot=np.linspace(-10,10,100)
-plt.plot(X_plot, sigmoid(X_plot))
-plt.show()
+from sklearn.preprocessing import LabelEncoder
+le=LabelEncoder()
+data1["gender"]=le.fit_transform(data1["gender"])
+data1["ssc_b"]=le.fit_transform(data1["ssc_b"])
+data1["hsc_b"]=le.fit_transform(data1["hsc_b"])
+data1["hsc_s"]=le.fit_transform(data1["hsc_s"])
+data1["degree_t"]=le.fit_transform(data1["degree_t"])
+data1["workex"]=le.fit_transform(data1["workex"])
+data1["specialisation"]=le.fit_transform(data1["specialisation"])
+data1["status"]=le.fit_transform(data1["status"])
+data1
 
-def costFuction(theta,X,y):
-  h=sigmoid(np.dot(X,theta))
-  J= -(np.dot(y, np.log(h)) + np.dot(1-y,np.log(1-h))) / X.shape[0]
-  grad = np.dot(X.T, h-y) / X.shape[0]
-  return J,grad
-  
-X_train=np.hstack((np.ones((X.shape[0],1)),X))
-theta=np.array([0,0,0])
-J, grad=costFuction(theta, X_train, y)
-print(J)
-print(grad)
+x=data1.iloc[:,:-1]
+x
 
-X_train=np.hstack((np.ones((X.shape[0],1)),X))
-theta=np.array([-24,0.2,0.2])
-J, grad=costFuction(theta, X_train, y)
-print(J)
-print(grad)
+y=data1["status"]
+y
 
-def cost(theta,X,y):
-  h = sigmoid(np.dot(X,theta))
-  J= -(np.dot(y, np.log(h)) + np.dot(1-y, np.log(1-h))) / X.shape[0]
-  return J
-  
-def gradient(theta,X,y):
-  h=sigmoid(np.dot(X,theta))
-  grad= np.dot(X.T, h-y) / X.shape[0]
-  return grad
-  
-X_train = np.hstack((np.ones((X.shape[0],1)),X))
-theta= np.array([0,0,0])
-res = optimize.minimize(fun=cost, x0=theta, args=(X_train,y),method="Newton-CG",jac=gradient)
-print(res.fun)
-print(res.x)
+from sklearn.model_selection import train_test_split
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.2,random_state=0)
 
-def plotDecisionBoundary(theta,X,y):
-  x_min, x_max = X[:,0].min() - 1, X[:,0].max()+1
-  y_min, y_max = X[:,1].min() - 1, X[:,1].max()+1
-  xx, yy = np.meshgrid(np.arange(x_min,x_max,0.1),
-                       np.arange(y_min,y_max,0.1))
-  X_plot = np.c_[xx.ravel(), yy.ravel()]
-  X_plot = np.hstack((np.ones((X_plot.shape[0],1)),X_plot))
-  y_plot = np.dot(X_plot, theta).reshape(xx.shape)
+from sklearn.linear_model import LogisticRegression
+lr=LogisticRegression(solver="liblinear")
+lr.fit(x_train,y_train)
+y_pred=lr.predict(x_test)
+y_pred
 
-  plt.figure()
-  plt.scatter(X[y==1][:,0],X[y==1][:,1],label="Admitted")
-  plt.scatter(X[y==0][:,0],X[y==0][:,1],label="Not admitted")
-  plt.contour(xx,yy,y_plot, levels=[0])
-  plt.xlabel("Exam 1 score")
-  plt.ylabel("Exam 2 score")
-  plt.legend()
-  plt.show()
-  
-  plotDecisionBoundary(res.x,X,y)
-  
-prob = sigmoid(np.dot(np.array([1,45,85]),res.x))
-print(prob)
+from sklearn.metrics import accuracy_score
+accuracy=accuracy_score(y_test,y_pred)
+accuracy
 
-def predict(theta,X):
-  X_train = np.hstack((np.ones((X.shape[0],1)),X))
-  prob = sigmoid(np.dot(X_train,theta))
-  return(prob >= 0.5).astype(int)
-  
-np.mean(predict(res.x,X)==y)
+from sklearn.metrics import classification_report
+classification_report1=classification_report(y_test,y_pred)
+print(classification_report1)
+
+lr.predict([[1,80,1,90,1,1,90,1,0,85,1,85]])
 */
 ```
 
 ## Output:
-#### Array Value of x
-![Screenshot 2023-05-11 155230](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/033e44c7-01d8-4694-af58-e47e586bc326)
-
-#### Array Value of y
-![Screenshot 2023-05-11 155238](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/3d9afb2e-3520-4ab7-a959-1685a95c48cb)
-
-#### Exam 1 - score graph
-![Screenshot 2023-05-11 161150](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/6c725e84-829f-459b-9dab-ec3c9c4316fb)
-
-
-#### Sigmoid function graph
-![Screenshot 2023-05-11 155309](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/b114a544-ffeb-42c5-a36d-e6bdb52a65ea)
-
-#### X_train_grad value
-![Screenshot 2023-05-11 155324](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/6d006193-6d73-44d9-8290-4d82eb608d7e)
-
-#### Y_train_grad value
-![Screenshot 2023-05-11 155335](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/71194e2e-7353-4bf9-93d7-027575624256)
-
-#### Print res.x
-![Screenshot 2023-05-11 155723](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/16c592fc-3657-4346-bdb5-c27acad5a7f8)
-
-#### Decision boundary - graph for exam score
-![Screenshot 2023-05-11 155730](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/beecf6cd-c08f-47df-bb02-00eadb43d41f)
-
-
-#### Proability value 
-![Screenshot 2023-05-11 155822](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/b92b63f4-f532-462a-8593-d86f4cc83efd)
-
-#### Prediction value of mean
-![Screenshot 2023-05-11 155829](https://github.com/Yamunaasri/-Implementation-of-Logistic-Regression-Using-Gradient-Descent/assets/115707860/f8ee18ed-c208-47d9-ac94-7704d6852df1)
-
+![ml1](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/a5c3d163-7f8d-45e4-b651-9ff2adccdf5f)
+![ml2](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/c6dd32d6-c425-4403-bc3e-00356d3c3205)
+![ml3](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/16c18f32-7e2c-4c07-b0ac-eb99936b8806)
+![ml4](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/cabbda4f-c5e6-4c86-9df2-80bfb22df2dd)
+![ml5](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/eb61ba81-2e6b-4db0-8709-853111d38fea)
+![ml6](https://github.com/anu-varshini11/Implementation-of-Logistic-Regression-Model-to-Predict-the-Placement-Status-of-Student/assets/138969827/5c672ced-749a-433c-8ceb-b087fcfabf4e)
 
 ## Result:
-Thus the program to implement the the Logistic Regression Using Gradient Descent is written and verified using python programming.
+Thus the program to implement the the Logistic Regression Model to Predict the Placement Status of Student is written and verified using python programming.
